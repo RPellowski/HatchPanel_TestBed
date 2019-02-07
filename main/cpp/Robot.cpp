@@ -5,6 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
+#include "env.h"
 #include "Robot.h"
 
 #include <iostream>
@@ -17,6 +18,14 @@
 
 
 void Robot::RobotInit() {
+
+  cs::UsbCamera camera = CameraServer::GetInstance()->StartAutomaticCapture();
+	camera.SetResolution(640, 480);
+  int bits;
+  hingeSensor.SetOversampleBits(4);
+  bits = hingeSensor.GetOversampleBits();
+  hingeSensor.SetAverageBits(2);
+  bits = hingeSensor.GetAverageBits();
   hingePIDMode = false;
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
@@ -55,7 +64,9 @@ void Robot::RobotInit() {
   frc::Shuffleboard::GetTab("Sensors").Add("Front right drive", fr_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Sensors").Add("Rear right drive", rr_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Sensors").Add("Gyro Angle", gyro.GetAngle());
-  frc::Shuffleboard::GetTab("Light").Add("Light", 0);//.GetEntry();
+  frc::Shuffleboard::GetTab("Sensors").Add("Hinge Voltage", hingeSensor.GetVoltage());
+  frc::Shuffleboard::GetTab("Main").Add("Code Version: ", ROBOT_VERSION_STRING);
+  frc::Shuffleboard::GetTab("Main").Add("Light", 0);//.GetEntry();
   //frontRight.SetInverted(true);
   //rearRight.SetInverted(true);
 }
@@ -113,11 +124,12 @@ void Robot::TeleopPeriodic() {
   frc::SmartDashboard::PutNumber("Rear left drive", rl_encoder.GetPosition());
   frc::SmartDashboard::PutNumber("Front right drive", fr_encoder.GetPosition());
   frc::SmartDashboard::PutNumber("Rear right drive", rr_encoder.GetPosition());
-  
-  frc::SmartDashboard::PutNumber("Gyro Angle", gyro.GetAngle());
+  frc::SmartDashboard::PutNumber("Gyro Angle", gyro.GetAngle());  
+  frc::SmartDashboard::PutNumber("Hinge Angle", hingeSensor.GetVoltage());
   try{
     //mecanum drive
-    m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), -deadBand(m_Xbox.GetRawAxis(1)), deadBand(m_Xbox.GetRawAxis(4)), -(gyro.GetAngle()));
+    //m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), -deadBand(m_Xbox.GetRawAxis(1)), deadBand(m_Xbox.GetRawAxis(4)), -(gyro.GetAngle()));
+    m_robotDrive.DriveCartesian(0, 0, 0);
   }
   catch(std::exception ex){
     std::string err_string = "Error communicating with Drive System:  ";
@@ -176,12 +188,17 @@ void Robot::TeleopPeriodic() {
     }
   
   //bumpers (hinge)
+  
   if (m_Xbox.GetRawButton(5)) {
      hingeMotor.Set(ControlMode::PercentOutput, .25);
   }
   else if (m_Xbox.GetRawButton(6)) {
      hingeMotor.Set(ControlMode::PercentOutput, -.5);
   }
+  else {
+    hingeMotor.Set(ControlMode::PercentOutput, 0);
+  }
+  /*
   else if (m_Xbox.GetRawButton(7)) {
      hingeMotor.Set(ControlMode::Position, HINGE_INTAKE_POSITION);
      printf("Setting Hinge Position to %d\n", HINGE_INTAKE_POSITION);
@@ -190,6 +207,7 @@ void Robot::TeleopPeriodic() {
      hingeMotor.Set(ControlMode::Position, HINGE_CLOSED_POSITION);
      printf("Setting Hinge Position to %d\n", HINGE_CLOSED_POSITION);
   }
+  */
 //  else {
 //		int currentPosition = hingeMotor.GetSelectedSensorPosition(0);
 //     hingeMotor.Set(ControlMode::Position, currentPosition);
