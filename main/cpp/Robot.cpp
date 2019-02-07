@@ -18,6 +18,11 @@
 
 void Robot::RobotInit() {
   hingePIDMode = false;
+  cs::UsbCamera camera1 = frc::CameraServer::GetInstance()->StartAutomaticCapture(0);
+  cs::UsbCamera camera2 = frc::CameraServer::GetInstance()->StartAutomaticCapture(1);
+  cs::VideoSink server = frc::CameraServer::GetInstance()->GetServer();
+  //cs::UsbCamera camera1 = CameraServer::GetInstance()->StartAutomaticCapture(0);
+  //cs::UsbCamera camera2 = CameraServer::GetInstance()->StartAutomaticCapture(1);
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
@@ -113,11 +118,19 @@ void Robot::TeleopPeriodic() {
   frc::SmartDashboard::PutNumber("Rear left drive", rl_encoder.GetPosition());
   frc::SmartDashboard::PutNumber("Front right drive", fr_encoder.GetPosition());
   frc::SmartDashboard::PutNumber("Rear right drive", rr_encoder.GetPosition());
+
+  if (m_Xbox.GetBButton()) {
+    server.SetSource(camera2);
+  }
+  else {
+    server.SetSource(camera1);
+  }
   
   frc::SmartDashboard::PutNumber("Gyro Angle", gyro.GetAngle());
   try{
     //mecanum drive
-    m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), -deadBand(m_Xbox.GetRawAxis(1)), deadBand(m_Xbox.GetRawAxis(4)), -(gyro.GetAngle()));
+    //m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), -deadBand(m_Xbox.GetRawAxis(1)), deadBand(m_Xbox.GetRawAxis(4)), -(gyro.GetAngle()));    
+    m_robotDrive.DriveCartesian(0, 0, 0);
   }
   catch(std::exception ex){
     std::string err_string = "Error communicating with Drive System:  ";
