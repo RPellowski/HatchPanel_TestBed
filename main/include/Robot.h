@@ -43,6 +43,10 @@ class Robot : public frc::TimedRobot {
   #define HINGE_EJECT_POSITION 1090 // For ejecting cargo ball
   #define HINGE_CLOSED_POSITION 0 // Starting configuration
 
+  cs::UsbCamera camera1 = frc::CameraServer::GetInstance()->StartAutomaticCapture(0);
+  cs::UsbCamera camera2 = frc::CameraServer::GetInstance()->StartAutomaticCapture(1);
+  cs::VideoSink server = frc::CameraServer::GetInstance()->GetServer();
+
   std::string m_autoSelected;
   frc::DoubleSolenoid hatchPanel{0,1};
   frc::XboxController m_Xbox{0};
