@@ -13,6 +13,7 @@
 #include <frc/smartdashboard/SendableChooser.h>
 #include <ctre/Phoenix.h>
 #include <rev/CANSparkMax.h>
+#include <AHRS.h>
 
 // Pnuematic Hatch Panel
 #define EXTEND 1
@@ -38,9 +39,18 @@ class Robot : public frc::TimedRobot {
   //static const int front_left_id = 2, rear_left_id = 5, front_right_id = 1, rear_right_id = 4;
   #define BRUSHLESS rev::CANSparkMax::MotorType::kBrushless
 
+  #define HINGE_INTAKE_POSITION 2180 // For injecting cargo ball
+  #define HINGE_EJECT_POSITION 1090 // For ejecting cargo ball
+  #define HINGE_CLOSED_POSITION 0 // Starting configuration
+
+  cs::UsbCamera camera1 = frc::CameraServer::GetInstance()->StartAutomaticCapture(0);
+  cs::UsbCamera camera2 = frc::CameraServer::GetInstance()->StartAutomaticCapture(1);
+  cs::VideoSink server = frc::CameraServer::GetInstance()->GetServer();
+
   std::string m_autoSelected;
   frc::DoubleSolenoid hatchPanel{0,1};
   frc::XboxController m_Xbox{0};
+  frc::Relay ballHatchLight{0};
 
   // Drive base motor
   rev::CANSparkMax frontLeft{2, BRUSHLESS};
@@ -54,8 +64,15 @@ class Robot : public frc::TimedRobot {
   rev::CANEncoder fr_encoder = frontRight.GetEncoder();
   rev::CANEncoder rr_encoder = rearRight.GetEncoder();
 
+  AHRS gyro{SPI::Port::kMXP};
+
   // Subsystem motors
-  WPI_TalonSRX ballMotor{6};
+  //WPI_TalonSRX ballMotor{6};
+  WPI_TalonSRX liftMotor {6};
   WPI_TalonSRX hingeMotor{7};
+  bool hingePIDMode;
+  // Subsystem encoders
   frc::MecanumDrive m_robotDrive{frontLeft, rearLeft, frontRight, rearRight};
+  cs::UsbCamera camera;
+  AnalogInput hingeSensor{0};
 };
